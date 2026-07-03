@@ -1,0 +1,7 @@
+edition = "2024"
+format_code_in_doc_comments = true
+group_imports = "StdExternalCrate"
+imports_granularity = "Module"
+style_edition = "2024"
+unstable_features = true
+wrap_comments = true

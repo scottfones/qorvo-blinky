@@ -1,0 +1,107 @@
+[package]
+authors = ["Scott Fones <scott.fones@gmail.com>"]
+name = "qorvo-blinky"
+edition = "2024"
+version = "0.1.0"
+
+[[bin]]
+name = "blinky"
+test = false
+bench = false
+
+[lib]
+test = false
+bench = false
+
+[[test]]
+name = "integration"
+harness = false
+
+[dependencies]
+cortex-m = { version = "0.7", features = ["critical-section-single-core"] }
+cortex-m-rt = "0.7"
+defmt = "1"
+defmt-rtt = "1"
+dw3000-ng = { version = "1", default-features = false, features = ["async"] }
+embassy-embedded-hal = { version = "0.6", features = ["defmt"] }
+embassy-executor = { version = "0.10", features = [
+  "platform-cortex-m",
+  "executor-thread",
+  "defmt",
+] }
+embassy-nrf = { version = "0.11", features = [
+  "nrf52833",
+  "time-driver-rtc1",
+  "gpiote",
+  "time",
+  "defmt",
+  "unstable-pac",
+] }
+embassy-sync = { version = "0.8", features = ["defmt"] }
+embassy-time = { version = "0.5", features = [
+  "defmt",
+  "defmt-timestamp-uptime",
+] }
+embedded-hal-bus = { version = "0.3", features = ["async"] }
+panic-probe = { version = "1", features = ["print-defmt"] }
+semihosting = "0.1"
+static_cell = "2"
+
+[dev-dependencies]
+embedded-hal-async = "1"
+embedded-test = { version = "0.7", features = ["defmt", "embassy-010"] }
+
+[profile.dev]
+opt-level = "s"
+
+[profile.release]
+opt-level = "s"
+codegen-units = 1
+lto = "fat"
+debug = 2
+
+[lints.clippy]
+# Allow hygiene
+allow_attributes = "warn"
+allow_attributes_without_reason = "warn"
+
+# Dropped futures and errors
+assertions_on_result_states = "warn"
+let_underscore_must_use = "warn"
+map_err_ignore = "warn"
+unused_result_ok = "warn"
+
+# Lint groups
+nursery = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+
+# Group overrides
+future_not_send = "allow"
+
+# Misc
+dbg_macro = "warn"
+rc_mutex = "warn"
+
+# Numbers
+float_cmp_const = "warn"
+lossy_float_literal = "warn"
+
+# Unsafe memory
+mem_forget = "warn"
+multiple_unsafe_ops_per_block = "warn"
+undocumented_unsafe_blocks = "warn"
+unnecessary_safety_comment = "warn"
+unnecessary_safety_doc = "warn"
+
+# Unwraps, slicing and indexing
+expect_used = "warn"
+get_unwrap = "warn"
+indexing_slicing = "warn"
+panic = "warn"
+panic_in_result_fn = "warn"
+string_slice = "warn"
+todo = "warn"
+unimplemented = "warn"
+unreachable = "warn"
+unwrap_in_result = "warn"
+unwrap_used = "warn"

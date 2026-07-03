@@ -1,0 +1,13 @@
+[target.'cfg(all(target_arch = "arm", target_os = "none"))']
+runner = "probe-rs run --chip nRF52833_xxAA --allow-erase-all --log-format=oneline"
+rustflags = ["-C", "linker=flip-link"]
+
+[build]
+target = "thumbv7em-none-eabihf"
+
+[env]
+DEFMT_LOG = "debug"
+
+[alias]
+rb = "run --bin"
+rrb = "run --release --bin"
