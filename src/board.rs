@@ -12,11 +12,13 @@
 pub mod spim3_uwb;
 pub mod twim0;
 
-use embassy_nrf::Peripherals;
 use embassy_nrf::gpio::{Level, Output, OutputDrive};
+use embassy_nrf::{Peri, Peripherals, peripherals};
 
 /// Constructed board resources.
 pub struct Board {
+    /// LIS2DH12 data-ready interrupt (INT1, P0.16, active-high).
+    pub accel_drdy: Peri<'static, peripherals::P0_16>,
     /// User LED D9 (green, P0.04, active-low).
     pub led_d09: Output<'static>,
     /// User LED D10 (green, P0.05, active-low).
@@ -35,6 +37,8 @@ impl Board {
     /// Configure the board's peripherals from the embassy singletons.
     #[must_use]
     pub fn new(p: Peripherals) -> Self {
+        let accel_drdy = p.P0_16;
+
         let led_d09 = Output::new(p.P0_04, Level::High, OutputDrive::Standard);
         let led_d10 = Output::new(p.P0_05, Level::High, OutputDrive::Standard);
         let led_d11 = Output::new(p.P0_22, Level::High, OutputDrive::Standard);
@@ -55,6 +59,7 @@ impl Board {
         };
 
         Self {
+            accel_drdy,
             led_d09,
             led_d10,
             led_d11,

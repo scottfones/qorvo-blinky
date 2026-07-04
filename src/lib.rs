@@ -2,4 +2,5 @@
 
 #![no_std]
 
+pub mod accel;
 pub mod board;
