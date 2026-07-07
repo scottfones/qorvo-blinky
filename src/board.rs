@@ -21,11 +21,11 @@ pub struct Board {
     pub accel_drdy: Peri<'static, peripherals::P0_16>,
     /// User LED D9 (green, P0.04, active-low).
     pub led_d09: Output<'static>,
-    /// User LED D10 (green, P0.05, active-low).
+    /// User LED D10 (blue, P0.05, active-low).
     pub led_d10: Output<'static>,
-    /// User LED D11 (green, P0.22, active-low).
+    /// User LED D11 (red, P0.22, active-low).
     pub led_d11: Output<'static>,
-    /// User LED D12 (green, P0.14, active-low).
+    /// User LED D12 (red, P0.14, active-low).
     pub led_d12: Output<'static>,
     /// DW3110 SPI resources.
     pub spim3_uwb: spim3_uwb::Spim3UwbParts,
