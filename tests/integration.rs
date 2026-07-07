@@ -156,9 +156,9 @@ mod tests {
         let y_raw = i16::from_le_bytes([y_low, y_high]);
         let z_raw = i16::from_le_bytes([z_low, z_high]);
 
-        let x = accel::milli_g(x_raw);
-        let y = accel::milli_g(y_raw);
-        let z = accel::milli_g(z_raw);
+        let x = accel::FullScale::G2.milli_g(x_raw);
+        let y = accel::FullScale::G2.milli_g(y_raw);
+        let z = accel::FullScale::G2.milli_g(z_raw);
         defmt::info!(
             "{=str}  raw x={=i16:#06x} y={=i16:#06x} z={=i16:#06x}  mg x={=i32} y={=i32} z={=i32}",
             label,
