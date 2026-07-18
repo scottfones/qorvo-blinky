@@ -5,21 +5,35 @@ edition = "2024"
 version = "0.1.0"
 
 [[bin]]
-name = "orienty"
-test = false
+name = "blinky"
 bench = false
+test = false
 
 [[bin]]
-name = "blinky"
-test = false
+name = "orienty"
 bench = false
+test = false
+
+[[bin]]
+name = "rangey"
+path = "src/bin/rangey/rangey.rs"
+bench = false
+test = false
 
 [lib]
 test = false
 bench = false
 
 [[test]]
-name = "integration"
+name = "accelerometer"
+harness = false
+
+[[test]]
+name = "nrf52833"
+harness = false
+
+[[test]]
+name = "uwb"
 harness = false
 
 [dependencies]
@@ -27,13 +41,14 @@ cortex-m = { version = "0.7", features = ["critical-section-single-core"] }
 cortex-m-rt = "0.7"
 defmt = "1"
 defmt-rtt = "1"
-dw3000-ng = { version = "1", default-features = false, features = ["async"] }
+dw3000-ng = { version = "1", default-features = false, features = ["defmt"] }
 embassy-embedded-hal = { version = "0.6", features = ["defmt"] }
 embassy-executor = { version = "0.10", features = [
   "platform-cortex-m",
   "executor-thread",
   "defmt",
 ] }
+embassy-futures = "0.1"
 embassy-nrf = { version = "0.11", features = [
   "nrf52833",
   "time-driver-rtc1",
@@ -47,8 +62,10 @@ embassy-time = { version = "0.5", features = [
   "defmt",
   "defmt-timestamp-uptime",
 ] }
+embedded-hal = "1"
 embedded-hal-async = "1"
-embedded-hal-bus = { version = "0.3", features = ["async"] }
+embedded-hal-bus = { version = "0.3", features = ["async", "defmt-03"] }
+nb = "1"
 panic-probe = { version = "1", features = ["print-defmt"] }
 semihosting = "0.1"
 static_cell = "2"
