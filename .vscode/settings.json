@@ -1,0 +1,9 @@
+{
+  "rust-analyzer.check.allTargets": false,
+  "rust-analyzer.check.extraArgs": [
+    "--bins"
+  ],
+  "rust-analyzer.rustfmt.extraArgs": [
+    "+nightly"
+  ]
+}
