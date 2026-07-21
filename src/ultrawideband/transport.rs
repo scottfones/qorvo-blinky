@@ -9,22 +9,14 @@ use embassy_time::{Duration, Timer};
 use crate::board::spim3_uwb::Spim3Uwb;
 use crate::ultrawideband::DwResult;
 
-/// Limit for one IRQ wait period.
-pub const IRQ_RESCUE_INTERVAL: Duration = Duration::from_millis(20);
-
 /// Max PHY packet size (including FCS).
 pub const MAX_PHY_PACKET_SIZE: usize = 127;
 
 /// FCS packet segment length.
 const FCS_LENGTH: usize = 2;
 
-/// The disposition of a deadline-bounded receive wait.
-pub enum RxOutcome {
-    /// A frame arrived: payload length (FCS stripped) and its rx timestamp.
-    Frame(usize, DwInstant),
-    /// The deadline passed with no frame.
-    TimedOut,
-}
+/// Limit for one IRQ wait period.
+const IRQ_RESCUE_INTERVAL: Duration = Duration::from_millis(20);
 
 pub struct EventLine {
     pin: Input<'static>,
@@ -49,9 +41,9 @@ impl EventLine {
 /// - W1C for `sys_status` fails
 /// - `finish_receiving`
 pub fn abort_receive(
-    mut dw: DW3000<Spim3Uwb, SingleBufferReceiving>,
+    mut dw_receiving: DW3000<Spim3Uwb, SingleBufferReceiving>,
 ) -> DwResult<DW3000<Spim3Uwb, Ready>> {
-    dw.ll().sys_status().write(|w| {
+    dw_receiving.ll().sys_status().write(|w| {
         w.rxprd(1)
             .rxsfdd(1)
             .ciadone(1)
@@ -70,7 +62,7 @@ pub fn abort_receive(
             .arfe(1)
     })?;
 
-    match dw.finish_receiving() {
+    match dw_receiving.finish_receiving() {
         Ok(ready) => Ok(ready),
         Err((_dw, e)) => Err(e),
     }
@@ -89,8 +81,8 @@ pub async fn receive_frame(
 ) -> DwResult<(usize, DwInstant)> {
     loop {
         match dw.r_wait_buf(buffer) {
-            Ok((length, rx_time, _quality)) => {
-                return Ok((length.saturating_sub(FCS_LENGTH), rx_time));
+            Ok((length, rx_instant, _quality)) => {
+                return Ok((length.saturating_sub(FCS_LENGTH), rx_instant));
             }
             Err(nb::Error::WouldBlock) => event_line.wait().await,
             Err(nb::Error::Other(e)) => return Err(e),
@@ -108,7 +100,7 @@ pub async fn wait_tx_done(
 ) -> DwResult<DwInstant> {
     loop {
         match dw.s_wait() {
-            Ok(tx_time) => return Ok(tx_time),
+            Ok(tx_instant) => return Ok(tx_instant),
             Err(nb::Error::WouldBlock) => event_line.wait().await,
             Err(nb::Error::Other(e)) => return Err(e),
         }

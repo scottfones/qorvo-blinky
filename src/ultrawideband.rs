@@ -10,7 +10,7 @@ use embedded_hal::delay::DelayNs;
 
 use crate::board::spim3_uwb::Spim3Uwb;
 
-const DEFAULT_ANTENNA_CHANNEL: UwbChannel = UwbChannel::Channel9;
+const DEFAULT_CHANNEL: UwbChannel = UwbChannel::Channel9;
 const DEFAULT_ANTENNA_DELAY_DTU: u16 = 16385;
 
 const OTP_ADDR_ANTENNA_DELAY_CH5: u16 = 0x01A;
@@ -49,12 +49,9 @@ pub fn bring_up(spim3_uwb: Spim3Uwb) -> DwResult<(DW3000<Spim3Uwb, Ready>, u16)>
 }
 
 /// Set antenna delay via OTP read or default value.
-///
-/// # Errors
-/// Returns `Err` if OTP read fails
 #[must_use]
 pub fn bring_up_antenna_delay(dw: &mut DW3000<Spim3Uwb, Uninitialized>) -> (u16, u16) {
-    let ch_addr = match DEFAULT_ANTENNA_CHANNEL {
+    let ch_addr = match DEFAULT_CHANNEL {
         UwbChannel::Channel5 => OTP_ADDR_ANTENNA_DELAY_CH5,
         UwbChannel::Channel9 => OTP_ADDR_ANTENNA_DELAY_CH9,
     };
@@ -63,7 +60,7 @@ pub fn bring_up_antenna_delay(dw: &mut DW3000<Spim3Uwb, Uninitialized>) -> (u16,
             let rx = u16::try_from(word >> 16).unwrap_or(u16::MAX);
             let tx = u16::try_from(word & 0xFFFF).unwrap_or(u16::MAX);
             defmt::info!(
-                "uwb: CH9 antenna delay OTP 0x1C = {=u32:#010x} (rx={=u16} tx={=u16})",
+                "bring-up: antenna delay OTP = {=u32:#010x} (rx={=u16} tx={=u16})",
                 word,
                 rx,
                 tx
@@ -72,16 +69,16 @@ pub fn bring_up_antenna_delay(dw: &mut DW3000<Spim3Uwb, Uninitialized>) -> (u16,
         }
         Ok(word) => {
             defmt::warn!(
-                "uwb: OTP 0x1C blank ({=u32:#010x}); using default {=u16}",
+                "bring-up: OTP antenna delay blank ({=u32:#010x}); using default {=u16}",
                 word,
                 DEFAULT_ANTENNA_DELAY_DTU
             );
             (DEFAULT_ANTENNA_DELAY_DTU, DEFAULT_ANTENNA_DELAY_DTU)
         }
         Err(e) => {
-            defmt::error!("bringnable to read OTP antenna delay: {}", e);
+            defmt::error!("bring-up: unable to read OTP antenna delay: {}", e);
             defmt::warn!(
-                "uwb: OTP 0x1C read failed; using default {=u16}",
+                "bring-up: OTP antenna delay read failed; using default ({=u16})",
                 DEFAULT_ANTENNA_DELAY_DTU
             );
             (DEFAULT_ANTENNA_DELAY_DTU, DEFAULT_ANTENNA_DELAY_DTU)
@@ -169,7 +166,7 @@ pub fn bring_up_is_clean(
 #[must_use]
 pub fn radio_config() -> dw3000_ng::Config {
     dw3000_ng::Config {
-        channel: DEFAULT_ANTENNA_CHANNEL,
+        channel: DEFAULT_CHANNEL,
         pulse_repetition_frequency: PulseRepetitionFrequency::Mhz64,
         bitrate: BitRate::Kbps6800,
         ..dw3000_ng::Config::default()

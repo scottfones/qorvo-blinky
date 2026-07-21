@@ -61,10 +61,7 @@ impl MessageType {
 
                     Some(decoded_message)
                 }
-                (_, _) => {
-                    defmt::error!("Message decode failed: invalid message type");
-                    None
-                }
+                (_, _) => None,
             }
         } else {
             None
@@ -99,7 +96,7 @@ impl MessageType {
             msg_id,
             p0, p1, p2, p3, p4, p5, p6, p7,
             r0, r1, r2, r3, r4, r5, r6, r7,
-            f0, f1, f2, f3, f4, f5, f6, f7,       
+            f0, f1, f2, f3, f4, f5, f6, f7,
         ];
         frame
     }

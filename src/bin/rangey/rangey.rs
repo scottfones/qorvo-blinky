@@ -81,7 +81,7 @@ async fn main(spawner: Spawner) {
     loop {
         let mut dw_receiving = match dw.receive(ultrawideband::radio_config()) {
             Ok(dw_receive) => dw_receive,
-            Err(e) => defmt::panic!("receiver initialization failed: {:?}", e),
+            Err(e) => defmt::panic!("receiver initialization failed: {}", e),
         };
 
         match select(
@@ -91,15 +91,17 @@ async fn main(spawner: Spawner) {
         .await
         {
             Either::First(()) => {
-                let Ok(ready) = abort_receive(dw_receiving)
-                    .map_err(|e| defmt::panic!("main: button abrt rx: {}", e));
+                let dw_ready = match abort_receive(dw_receiving) {
+                    Ok(ready) => ready,
+                    Err(e) => defmt::panic!("main: button abrt rx: {}", e),
+                };
 
                 settle_button(&mut button).await;
                 led_role.set_low();
 
                 defmt::info!("main: SW2 pressed - initiating");
                 match initiator::run_initiator(
-                    ready,
+                    dw_ready,
                     &mut event_line,
                     &mut button,
                     &mut buffer,
@@ -116,10 +118,11 @@ async fn main(spawner: Spawner) {
                 settle_button(&mut button).await;
                 defmt::info!("main: initiator returned to listening");
             }
-            Either::Second(Ok((msg_length, poll_rx_time))) => {
-                let Ok(dw_ready) = dw_receiving
-                    .finish_receiving()
-                    .map_err(|(_dw, e)| defmt::panic!("main: responder finish_receiving: {}", e));
+            Either::Second(Ok((msg_length, poll_rx_instant))) => {
+                let dw_ready = match dw_receiving.finish_receiving() {
+                    Ok(ready) => ready,
+                    Err((_dw, e)) => defmt::panic!("main: responder finish_receiving: {}", e),
+                };
                 leds.on_rx();
 
                 let poll_msg = buffer.get(..msg_length).and_then(MessageType::decode);
@@ -132,7 +135,7 @@ async fn main(spawner: Spawner) {
                             &mut leds,
                             &mut distance_ema,
                             msg_id,
-                            poll_rx_time.value(),
+                            poll_rx_instant.value(),
                         )
                         .await
                         {
@@ -143,7 +146,14 @@ async fn main(spawner: Spawner) {
                     _ => dw = dw_ready,
                 }
             }
-            Either::Second(Err(e)) => defmt::panic!("main: abort_receive failed: {}", e),
+            Either::Second(Err(e)) => {
+                defmt::warn!("main: responder rx: {}", e);
+                let dw_ready = match abort_receive(dw_receiving) {
+                    Ok(ready) => ready,
+                    Err(ae) => defmt::panic!("main: abort_receive: {}", ae),
+                };
+                dw = dw_ready;
+            }
         }
     }
 }
